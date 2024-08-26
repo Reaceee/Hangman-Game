@@ -1,0 +1,13 @@
+GENERAL SETTINGS
+- Currency
+
+DISPLAY SETTINGS
+- Dark Theme
+- Animations and Transitions
+
+USER SETTINGS
+- Change Username
+- Change password
+- Profile Color
+
+Log out

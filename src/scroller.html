@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drag and Scroll Slider</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+
+        .slider-container {
+            display: flex;
+            overflow-x: hidden;
+            width: 100%;
+            max-width: 100%;
+            cursor: grab;
+            user-select: none;
+            scroll-snap-type: x mandatory;
+        }
+
+        .slider {
+            display: flex;
+            gap: 10px;
+            font-size: 4rem;
+            font-family: "poppins";
+            will-change: transform;
+            transition: transform 0.5s ease; /* Smooth transition */
+        }
+
+        .slide {
+            min-width: 500px;
+            height: 250px;
+            background-color: #999999;
+            flex-shrink: 0;
+            display: flex;
+            align-items: flex-end;
+            padding: 10px;
+            border-radius: 10px;
+            scroll-snap-align: start;
+        }
+
+        .slider-container.grabbing {
+            cursor: grabbing;
+            /* Remove transition when grabbing to avoid jumpy behavior */
+            .slider {
+                transition: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="slider-container">
+        <div class="slider">
+            <div class="slide">01</div>
+            <div class="slide">02</div>
+            <div class="slide">03</div>
+            <div class="slide">04</div>
+            <div class="slide">05</div>
+            <div class="slide">06</div>
+            <div class="slide">07</div>
+            <div class="slide">08</div>
+            <div class="slide">09</div>
+            <div class="slide">10</div>
+        </div>
+    </div>
+
+    <script>
+        const sliderContainer = document.querySelector('.slider-container');
+        const slider = document.querySelector('.slider');
+        let isDragging = false; // To check if the user is dragging
+        let startPos = 0; // The starting X position when dragging begins
+        let currentTranslate = 0; // The current translate value of the slider
+        let prevTranslate = 0; // The previous translate value before dragging started
+        let animationID = 0; // ID for the animation frame
+
+        // Add event listeners for mouse events
+        sliderContainer.addEventListener('mousedown', startDrag);
+        sliderContainer.addEventListener('mouseup', endDrag);
+        sliderContainer.addEventListener('mouseleave', endDrag);
+        sliderContainer.addEventListener('mousemove', drag);
+        sliderContainer.addEventListener('wheel', scroll);
+
+        function startDrag(event) {
+            isDragging = true; // User has started dragging
+            startPos = event.clientX; // Record the initial X position
+            animationID = requestAnimationFrame(animation); // Start the animation frame
+            sliderContainer.classList.add('grabbing'); // Change cursor to grabbing
+            slider.style.transition = 'none'; // Disable transition during dragging
+        }
+
+        function endDrag() {
+            isDragging = false; // User has stopped dragging
+            cancelAnimationFrame(animationID); // Cancel the animation frame
+
+            // Snap to the nearest slide
+            const movedBy = currentTranslate - prevTranslate;
+            if (movedBy < -100) {
+                currentTranslate = Math.max(currentTranslate - 510, -(slider.children.length - 1) * 510);
+            } else if (movedBy > 100) {
+                currentTranslate = Math.min(currentTranslate + 510, 0);
+            }
+
+            prevTranslate = currentTranslate; // Update the previous translate value
+            setSliderPosition(); // Set the slider position
+            sliderContainer.classList.remove('grabbing'); // Change cursor back to default
+            slider.style.transition = 'transform 0.5s ease'; // Re-enable transition for smooth snapping
+        }
+
+        function drag(event) {
+            if (isDragging) {
+                const currentPosition = event.clientX;
+                currentTranslate = prevTranslate + currentPosition - startPos; // Calculate the current translate value
+                setSliderPosition(); // Set the slider position
+            }
+        }
+
+        function scroll(event) {
+            event.preventDefault(); // Prevent default scroll behavior
+            const delta = event.deltaY > 0 ? 1 : -1; // Determine scroll direction
+            currentTranslate += delta * 510; // Scroll by one slide width (510px)
+            currentTranslate = Math.max(Math.min(currentTranslate, 0), -(slider.children.length - 1) * 510); // Clamp the translate value
+            prevTranslate = currentTranslate; // Update the previous translate value
+            setSliderPosition(); // Set the slider position with smooth transition
+        }
+
+        function animation() {
+            if (isDragging) {
+                requestAnimationFrame(animation); // Continue the animation frame if dragging
+            }
+        }
+
+        function setSliderPosition() {
+            slider.style.transform = `translateX(${currentTranslate}px)`; // Update the transform property of the slider
+        }
+
+        
+    </script>
+</body>
+</html>
